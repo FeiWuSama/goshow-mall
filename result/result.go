@@ -19,7 +19,7 @@ func NewResultWithOk(ctx *gin.Context, data any) {
 	})
 }
 
-func NewResultWithError(ctx *gin.Context, data any, err BusinessError) {
+func NewResultWithError(ctx *gin.Context, data any, err *BusinessError) {
 	ctx.JSON(http.StatusOK, Result{
 		Code: err.Code,
 		Data: data,
