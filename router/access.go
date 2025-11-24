@@ -55,6 +55,6 @@ func AccessLogMiddleware(filter func(ctx *gin.Context) bool) gin.HandlerFunc {
 		fields = append(fields, zap.Int64("cost", time.Since(begin).Microseconds()))
 		fields = append(fields, zap.Int("status", context.Writer.Status()))
 		fields = append(fields, zap.String("response", resp))
-		logger.Debug("记录日志", fields...)
+		logger.Info("记录日志", fields...)
 	}
 }
