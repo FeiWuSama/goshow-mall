@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
+	"time"
 	"workspace-goshow-mall/adaptor"
 	"workspace-goshow-mall/adaptor/repo/vo"
 	"workspace-goshow-mall/constants"
@@ -46,7 +47,7 @@ func AdminAuthMiddleware(filter func(ctx *gin.Context) bool, adminTokenFunc Admi
 			return
 		}
 		// 鉴权中间件
-		token := context.GetHeader(constants.UserToken)
+		token := context.GetHeader(constants.AdminToken)
 		if len(token) == 0 {
 			result.NewResultWithError(context, nil, result.NewBusinessError(result.Unauthorized))
 			context.Abort()
@@ -63,7 +64,11 @@ func AdminAuthMiddleware(filter func(ctx *gin.Context) bool, adminTokenFunc Admi
 			panic(err)
 			return
 		}
-		adaptor.Redis.Set(context, constants.UserTokenKey+token, string(userJson), constants.TokenExpire)
+		err = adaptor.Redis.Set(context, constants.AdminTokenKey+token, string(userJson), constants.TokenExpire*time.Second).Err()
+		if err != nil {
+			panic(err)
+			return
+		}
 		context.Next()
 	}
 }
