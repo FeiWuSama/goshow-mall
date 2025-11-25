@@ -4,35 +4,35 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"workspace-goshow-mall/adaptor"
-	"workspace-goshow-mall/adaptor/repo/dto"
+	"workspace-goshow-mall/adaptor/repo/vo"
 	"workspace-goshow-mall/constants"
 )
 
 type BaseCtrl struct {
 }
 
-func (c *BaseCtrl) GetUserDto(ctx *gin.Context, adaptor adaptor.Adaptor, token string) *dto.UserDto {
+func (c *BaseCtrl) GetUserVo(ctx *gin.Context, adaptor adaptor.Adaptor, token string) *vo.UserVo {
 	result := adaptor.Redis.Get(ctx, constants.UserTokenKey+token)
 	if result == nil {
 		return nil
 	}
 	val := result.Val()
-	var userDto *dto.UserDto
-	if err := json.Unmarshal([]byte(val), &userDto); err != nil {
+	var userVo *vo.UserVo
+	if err := json.Unmarshal([]byte(val), &userVo); err != nil {
 		return nil
 	}
-	return userDto
+	return userVo
 }
 
-func (c *BaseCtrl) GetAdminDto(ctx *gin.Context, adaptor adaptor.Adaptor, token string) *dto.UserDto {
+func (c *BaseCtrl) GetAdminVo(ctx *gin.Context, adaptor adaptor.Adaptor, token string) *vo.UserVo {
 	result := adaptor.Redis.Get(ctx, constants.AdminTokenKey+token)
 	if result == nil {
 		return nil
 	}
 	val := result.Val()
-	var userDto *dto.UserDto
-	if err := json.Unmarshal([]byte(val), &userDto); err != nil {
+	var userVo *vo.UserVo
+	if err := json.Unmarshal([]byte(val), &userVo); err != nil {
 		return nil
 	}
-	return userDto
+	return userVo
 }

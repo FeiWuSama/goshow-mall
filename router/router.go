@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"workspace-goshow-mall/adaptor"
-	"workspace-goshow-mall/adaptor/repo/dto"
+	"workspace-goshow-mall/adaptor/repo/vo"
 	"workspace-goshow-mall/api/admin"
 	"workspace-goshow-mall/api/user"
 	"workspace-goshow-mall/config"
@@ -101,10 +101,10 @@ func (r *Router) route(root *gin.RouterGroup) {
 
 func (r *Router) adminRoute(root *gin.RouterGroup) {
 	// 鉴权中间件
-	adminRoute := root.Group("/admin", AdminAuthMiddleware(r.SpanFilter, func(c context.Context, token string) (*dto.UserDto, error) {
-		return &dto.UserDto{}, nil
+	adminRoute := root.Group("/admin", AdminAuthMiddleware(r.SpanFilter, func(c context.Context, token string) (*vo.UserVo, error) {
+		return &vo.UserVo{}, nil
 	}, r.adaptor))
 	{
-		adminRoute.GET("/hello", r.admin.HelloWorld)
+		adminRoute.POST("/create", r.admin.CreateUser)
 	}
 }

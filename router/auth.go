@@ -5,13 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"workspace-goshow-mall/adaptor"
-	"workspace-goshow-mall/adaptor/repo/dto"
+	"workspace-goshow-mall/adaptor/repo/vo"
 	"workspace-goshow-mall/constants"
 	"workspace-goshow-mall/result"
 )
 
-type TokenFunc func(c context.Context, token string) (*dto.UserDto, error)
-type AdminTokenFunc func(c context.Context, token string) (*dto.UserDto, error)
+type TokenFunc func(c context.Context, token string) (*vo.UserVo, error)
+type AdminTokenFunc func(c context.Context, token string) (*vo.UserVo, error)
 
 func UserAuthMiddleware(filter func(ctx *gin.Context) bool, tokenFunc TokenFunc, adaptor *adaptor.Adaptor) gin.HandlerFunc {
 	return func(context *gin.Context) {

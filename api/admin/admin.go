@@ -23,9 +23,14 @@ func NewCtrl(adaptor *adaptor.Adaptor) *Ctrl {
 	}
 }
 
-func (c *Ctrl) HelloWorld(ctx *gin.Context) {
+func (c *Ctrl) CreateUser(ctx *gin.Context) {
 	token := ctx.Request.Header.Get(constants.AdminToken)
-	adminDto := c.GetAdminDto(ctx, *c.adaptor, token)
-	//helloWorld := c.adminService.HelloWorld(ctx.Request.Context())
-	result.NewResultWithOk(ctx, adminDto)
+	adminVo := c.GetAdminVo(ctx, *c.adaptor, token)
+	if adminVo == nil {
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.Unauthorized))
+		ctx.Abort()
+		return
+	}
+	//helloWorld := c.adminService.CreateUser(ctx.Request.Context())
+	result.NewResultWithOk(ctx, adminVo)
 }

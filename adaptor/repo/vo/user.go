@@ -1,6 +1,6 @@
-package dto
+package vo
 
-type UserDto struct {
+type UserVo struct {
 	Id       int    `json:"id"`
 	Username string `json:"username"`
 	Token    string `json:"token"`
