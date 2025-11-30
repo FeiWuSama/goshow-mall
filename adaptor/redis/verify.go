@@ -18,13 +18,13 @@ func NewVerify(redis *redis.Client) *Verify {
 }
 
 func (v *Verify) SaveCaptcha(ctx context.Context, key string, value string) error {
-	return v.redis.Set(ctx, constants.CaptchaKey+key, value, constants.CaptchaExpire*time.Second).Err()
+	return v.redis.Set(ctx, constants.SlideCaptchaKey+key, value, constants.CaptchaExpire*time.Second).Err()
 }
 
 func (v *Verify) GetCaptcha(ctx context.Context, key string) (string, error) {
-	result, err := v.redis.Get(ctx, constants.CaptchaKey+key).Result()
+	result, err := v.redis.Get(ctx, constants.SlideCaptchaKey+key).Result()
 	if err != nil {
-		v.redis.Del(ctx, constants.CaptchaKey+key)
+		v.redis.Del(ctx, constants.SlideCaptchaKey+key)
 		return "", err
 	}
 	return result, nil

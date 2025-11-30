@@ -17,3 +17,9 @@ func (c *SlideCaptchaDto) CheckSign() bool {
 	hash := sha256.Sum256([]byte(data))
 	return c.Sign == hex.EncodeToString(hash[:])
 }
+
+type SlideCaptchaCheckDto struct {
+	Key    string `json:"key"`
+	SlideX int    `json:"slideX"`
+	SlideY int    `json:"slideY"`
+}

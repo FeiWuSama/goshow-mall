@@ -15,3 +15,10 @@ func NewBusinessError(code Code) *BusinessError {
 		Msg:  code.Msg,
 	}
 }
+
+func NewBusinessErrorWithMsg(code Code, msg string) *BusinessError {
+	return &BusinessError{
+		Code: code.Code,
+		Msg:  msg,
+	}
+}

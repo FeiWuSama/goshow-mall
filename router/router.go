@@ -126,5 +126,6 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	}, r.adaptor))
 	{
 		userRoute.GET("/captcha/slide", r.user.GetSlideCaptcha)
+		userRoute.POST("captcha/slide/verify", r.user.VerifySlideCaptcha)
 	}
 }

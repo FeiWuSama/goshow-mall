@@ -4,11 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/wenlng/go-captcha/v2/slide"
 	"go.uber.org/zap"
 	"workspace-goshow-mall/adaptor"
 	"workspace-goshow-mall/adaptor/redis"
 	"workspace-goshow-mall/adaptor/repo/dto"
 	"workspace-goshow-mall/adaptor/repo/vo"
+	"workspace-goshow-mall/constants"
 	"workspace-goshow-mall/result"
 	"workspace-goshow-mall/utils/captcha"
 	"workspace-goshow-mall/utils/logger"
@@ -82,5 +84,62 @@ func (c *Ctrl) GetSlideCaptcha(ctx *gin.Context) {
 		TitleWidth:       captchaData.GetData().Height,
 		TitleX:           captchaData.GetData().DY,
 		TitleY:           captchaData.GetData().DY,
+	})
+}
+
+// VerifySlideCaptcha
+// @Summary 验证滑块验证码
+// @Tags user
+// @Accept json
+// @Produce json
+// @param SlideCaptchaCheckDto body dto.SlideCaptchaCheckDto true "校验信息"
+// @Success 200 {object} result.Result[vo.SlideCaptchaCheckVo]
+// @host localhost:8080
+// @Router /api/user/captcha/slide/verify [post]
+func (c *Ctrl) VerifySlideCaptcha(ctx *gin.Context) {
+	slideCaptchaCheckDto := &dto.SlideCaptchaCheckDto{}
+	if err := ctx.ShouldBindJSON(slideCaptchaCheckDto); err != nil {
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ParamError))
+		logger.Error("captcha error", zap.Error(err))
+		ctx.Abort()
+		return
+	}
+	captchaData, err := c.verify.GetCaptcha(ctx.Request.Context(), constants.SlideCaptchaKey+slideCaptchaCheckDto.Key)
+	if err != nil {
+		result.NewResultWithError(ctx, nil, result.NewBusinessErrorWithMsg(result.ServerError, "验证码已过期"))
+		ctx.Abort()
+		return
+	}
+	dot := slide.Block{}
+	err = json.Unmarshal([]byte(captchaData), &dot)
+	if err != nil {
+		logger.Error("json paste error", zap.Error(err))
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ParamError))
+		ctx.Abort()
+		return
+	}
+	validate := slide.Validate(slideCaptchaCheckDto.SlideX, slideCaptchaCheckDto.SlideY, dot.DX, dot.DY, 5)
+	if !validate {
+		result.NewResultWithError(ctx, nil, result.NewBusinessErrorWithMsg(result.ParamError, "验证码错误"))
+		ctx.Abort()
+		return
+	}
+	ticket := uuid.New().String()
+	jsonData, err := json.Marshal(slideCaptchaCheckDto)
+	if err != nil {
+		logger.Error("convert json error", zap.Error(err))
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ServerError))
+		ctx.Abort()
+		return
+	}
+	err = c.verify.SaveCaptchaTicket(ctx.Request.Context(), constants.CaptchaTicketKey+ticket, string(jsonData))
+	if err != nil {
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ServerError))
+		ctx.Abort()
+		return
+	}
+	result.NewResultWithOk[vo.SlideCaptchaCheckVo](ctx, vo.SlideCaptchaCheckVo{
+		Ticket: ticket,
+		Expire: constants.CaptchaTicketExpire,
 	})
 }

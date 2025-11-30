@@ -8,11 +8,12 @@ const (
 const (
 	UserTokenKey     = "goshow:user:token:"
 	AdminTokenKey    = "goshow:admin:token:"
-	CaptchaKey       = "goshow:captcha:"
+	SlideCaptchaKey  = "goshow:slide:captcha:"
 	CaptchaTicketKey = "goshow:ticket:"
 
-	TokenExpire   = 60 * 60 * 24 * 3
-	CaptchaExpire = 60 * 5
+	TokenExpire         = 60 * 60 * 24 * 3
+	CaptchaExpire       = 60 * 5
+	CaptchaTicketExpire = 60
 )
 
 const (
