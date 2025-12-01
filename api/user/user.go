@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
@@ -11,20 +12,24 @@ import (
 	"workspace-goshow-mall/adaptor/repo/dto"
 	"workspace-goshow-mall/adaptor/repo/vo"
 	"workspace-goshow-mall/constants"
+	"workspace-goshow-mall/logic/user"
 	"workspace-goshow-mall/result"
+	"workspace-goshow-mall/service"
 	"workspace-goshow-mall/utils/captcha"
 	"workspace-goshow-mall/utils/logger"
 )
 
 type Ctrl struct {
-	adaptor *adaptor.Adaptor
-	verify  *redis.Verify
+	adaptor     *adaptor.Adaptor
+	verify      *redis.Verify
+	userService service.IUserService
 }
 
 func NewCtrl(adaptor *adaptor.Adaptor) *Ctrl {
 	return &Ctrl{
-		adaptor: adaptor,
-		verify:  redis.NewVerify(adaptor.Redis),
+		adaptor:     adaptor,
+		verify:      redis.NewVerify(adaptor.Redis),
+		userService: user.NewService(adaptor),
 	}
 }
 
@@ -106,7 +111,7 @@ func (c *Ctrl) VerifySlideCaptcha(ctx *gin.Context) {
 	}
 	captchaData, err := c.verify.GetCaptcha(ctx.Request.Context(), constants.SlideCaptchaKey+slideCaptchaCheckDto.Key)
 	if err != nil {
-		result.NewResultWithError(ctx, nil, result.NewBusinessErrorWithMsg(result.ServerError, "验证码已过期"))
+		result.NewResultWithError(ctx, nil, result.NewBusinessErrorWithMsg(result.ParamError, "验证码已过期"))
 		ctx.Abort()
 		return
 	}
@@ -142,4 +147,33 @@ func (c *Ctrl) VerifySlideCaptcha(ctx *gin.Context) {
 		Ticket: ticket,
 		Expire: constants.CaptchaTicketExpire,
 	})
+}
+
+// MobileLoginByPassword
+// @Summary 手机号登录
+// @Tags user
+// @Accept json
+// @Produce json
+// @param userMobileLoginDto body dto.UserMobilePasswordLoginDto true "手机号登录信息"
+// @Success 200 {object} result.Result[*vo.UserVo]
+// @host localhost:8080
+// @Router /api/user/mobile/login [post]
+func (c *Ctrl) MobileLoginByPassword(ctx *gin.Context) {
+	userMobileLoginDto := &dto.UserMobilePasswordLoginDto{}
+	if err := ctx.ShouldBindJSON(userMobileLoginDto); err != nil {
+		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ParamError))
+		ctx.Abort()
+		return
+	}
+	userVo, err := c.userService.SMobileLogin(ctx.Request.Context(), userMobileLoginDto)
+	if err != nil {
+		if errors.As(err, &result.BusinessError{}) {
+			result.NewResultWithError(ctx, nil, err.(*result.BusinessError))
+		} else {
+			result.NewResultWithError(ctx, nil, result.NewBusinessError(result.ServerError))
+		}
+		ctx.Abort()
+		return
+	}
+	result.NewResultWithOk[vo.UserVo](ctx, *userVo)
 }

@@ -34,11 +34,11 @@ func (v *Verify) SaveCaptchaTicket(ctx context.Context, key string, value string
 	return v.redis.Set(ctx, constants.CaptchaTicketKey+key, value, constants.CaptchaExpire*time.Second).Err()
 }
 
-func (v *Verify) GetCaptchaTicket(ctx context.Context, key string) (string, error) {
-	result, err := v.redis.Get(ctx, constants.CaptchaTicketKey+key).Result()
+func (v *Verify) GetCaptchaTicket(ctx context.Context, key string) (int64, error) {
+	result, err := v.redis.Exists(ctx, constants.CaptchaTicketKey+key).Result()
 	if err != nil {
 		v.redis.Del(ctx, constants.CaptchaTicketKey+key)
-		return "", err
+		return result, err
 	}
 	return result, nil
 }
