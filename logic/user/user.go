@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/cnchef/gconv"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"workspace-goshow-mall/adaptor"
@@ -32,13 +33,18 @@ func (s Service) SMobileLogin(context context.Context, userMobileLoginDto interf
 		}
 	}
 	token := uuid.New().String()
-	return &vo.UserVo{
+	userVo := &vo.UserVo{
 		Token:    token,
 		Id:       user.ID,
 		Nickname: user.NickName,
 		Avatar:   user.Avatar,
 		Sex:      user.Sex,
-	}, nil
+	}
+	err = s.verify.SaveUserToken(context, token, gconv.ToString(userVo))
+	if err != nil {
+		return nil, err
+	}
+	return userVo, nil
 }
 
 func (s Service) getUserByPassword(context context.Context, dto *dto.UserMobilePasswordLoginDto) (*model.User, error) {

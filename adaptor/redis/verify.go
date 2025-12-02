@@ -42,3 +42,16 @@ func (v *Verify) GetCaptchaTicket(ctx context.Context, key string) (int64, error
 	}
 	return result, nil
 }
+
+func (v *Verify) SaveUserToken(ctx context.Context, key string, value string) error {
+	return v.redis.Set(ctx, constants.UserTokenKey+key, value, constants.TokenExpire*time.Second).Err()
+}
+
+func (v *Verify) GetUserToken(ctx context.Context, key string) (string, error) {
+	result, err := v.redis.Get(ctx, constants.UserTokenKey+key).Result()
+	if err != nil {
+		v.redis.Del(ctx, constants.UserTokenKey+key)
+		return "", err
+	}
+	return result, nil
+}
