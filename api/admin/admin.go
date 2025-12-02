@@ -43,8 +43,8 @@ func NewCtrl(adaptor *adaptor.Adaptor) *Ctrl {
 // @Router /api/admin/create [post]
 func (c *Ctrl) CreateAdmin(ctx *gin.Context) {
 	token := ctx.Request.Header.Get(constants.AdminToken)
-	adminVo := c.GetAdminVo(ctx, *c.adaptor, token)
-	if adminVo == nil {
+	adminVo, err := c.GetAdminVo(ctx.Request.Context(), c.adaptor, token)
+	if err != nil {
 		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.Unauthorized))
 		ctx.Abort()
 		return
@@ -74,8 +74,8 @@ func (c *Ctrl) CreateAdmin(ctx *gin.Context) {
 // @Router /api/admin/update [post]
 func (c *Ctrl) UpdateAdmin(ctx *gin.Context) {
 	token := ctx.Request.Header.Get(constants.AdminToken)
-	adminVo := c.GetAdminVo(ctx, *c.adaptor, token)
-	if adminVo == nil {
+	adminVo, err := c.GetAdminVo(ctx.Request.Context(), c.adaptor, token)
+	if err != nil {
 		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.Unauthorized))
 		ctx.Abort()
 		return
@@ -106,8 +106,8 @@ func (c *Ctrl) UpdateAdmin(ctx *gin.Context) {
 // @Router /api/admin/status/{id}/{status} [post]
 func (c *Ctrl) ChangeStatus(ctx *gin.Context) {
 	token := ctx.Request.Header.Get(constants.AdminToken)
-	adminVo := c.GetAdminVo(ctx, *c.adaptor, token)
-	if adminVo == nil {
+	adminVo, err := c.GetAdminVo(ctx.Request.Context(), c.adaptor, token)
+	if err != nil {
 		result.NewResultWithError(ctx, nil, result.NewBusinessError(result.Unauthorized))
 		ctx.Abort()
 		return

@@ -11,6 +11,7 @@ import (
 	"workspace-goshow-mall/adaptor/redis"
 	"workspace-goshow-mall/adaptor/repo/dto"
 	"workspace-goshow-mall/adaptor/repo/vo"
+	"workspace-goshow-mall/api"
 	"workspace-goshow-mall/constants"
 	"workspace-goshow-mall/logic/user"
 	"workspace-goshow-mall/result"
@@ -20,6 +21,7 @@ import (
 )
 
 type Ctrl struct {
+	api.BaseCtrl
 	adaptor     *adaptor.Adaptor
 	verify      *redis.Verify
 	userService service.IUserService
