@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"github.com/cnchef/gconv"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -10,6 +11,7 @@ import (
 	"workspace-goshow-mall/adaptor/repo/dto"
 	"workspace-goshow-mall/adaptor/repo/model"
 	"workspace-goshow-mall/adaptor/repo/vo"
+	"workspace-goshow-mall/constants"
 	"workspace-goshow-mall/mapper"
 	"workspace-goshow-mall/result"
 	"workspace-goshow-mall/utils/logger"
@@ -47,20 +49,29 @@ func (s Service) SMobileLogin(context context.Context, userMobileLoginDto interf
 	return userVo, nil
 }
 
-func (s Service) getUserByPassword(context context.Context, dto *dto.UserMobilePasswordLoginDto) (*model.User, error) {
-	_, err := s.verify.GetCaptchaTicket(context, dto.Ticket)
+func (s Service) getUserByPassword(context context.Context, loginDto *dto.UserMobilePasswordLoginDto) (*model.User, error) {
+	_, err := s.verify.GetCaptchaTicket(context, loginDto.Ticket)
 	if err != nil {
 		logger.Error("verify error", zap.Error(err))
 		return nil, err
+	}
+	count, err := s.verify.IncrPasswordErrorCount(context, loginDto.Mobile)
+	if err != nil {
+		logger.Error("redis error", zap.Error(err))
+		return nil, err
+	}
+	if count > constants.PasswordErrorCount {
+		return nil, result.NewBusinessErrorWithMsg(result.ParamError, fmt.Sprintf("密码错误次数过多,请在%d分钟后重试", count))
 	}
 	user, err := s.userMapper.GetUserByMobile(context)
 	if err != nil {
 		logger.Error("not found user error", zap.Error(err))
 		return nil, err
 	}
-	if !md5.MD5Verify(user.Password, dto.Password) || user.Status == -1 {
+	if !md5.MD5Verify(user.Password, loginDto.Password) || user.Status == constants.UserBanStatus {
 		logger.Error("password error")
 		return nil, result.NewBusinessErrorWithMsg(result.ParamError, "手机号或密码错误")
 	}
+	_ = s.verify.DeletePasswordErrorCount(context, loginDto.Mobile)
 	return user, nil
 }

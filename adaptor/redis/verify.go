@@ -55,3 +55,20 @@ func (v *Verify) GetUserToken(ctx context.Context, key string) (string, error) {
 	}
 	return result, nil
 }
+
+func (v *Verify) IncrPasswordErrorCount(ctx context.Context, key string) (int64, error) {
+	pipeline := v.redis.Pipeline()
+	result, err := pipeline.Incr(ctx, constants.PasswordErrorKey+key).Result()
+	if err != nil {
+		return 0, err
+	}
+	if result == 1 {
+		pipeline.Expire(ctx, constants.PasswordErrorKey+key, constants.PasswordErrorExpire*time.Minute)
+	}
+	_, err = pipeline.Exec(ctx)
+	return result, err
+}
+
+func (v *Verify) DeletePasswordErrorCount(ctx context.Context, key string) error {
+	return v.redis.Del(ctx, constants.PasswordErrorKey+key).Err()
+}
